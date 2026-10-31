@@ -6,6 +6,7 @@ use App\Http\Controllers\CustomersController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LocationsController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\PublicBranchController;
 use App\Http\Controllers\RatesController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\ReservationController;
@@ -13,6 +14,8 @@ use App\Http\Controllers\RoomsController;
 use App\Http\Controllers\TransactionWalkinController;
 use App\Http\Controllers\TransactionsController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/public/branches/{slug}/rates', [PublicBranchController::class, 'rates']);
 
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/register', [RegisterController::class, 'register']);
