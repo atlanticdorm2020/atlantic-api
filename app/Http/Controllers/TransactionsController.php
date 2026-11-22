@@ -45,7 +45,12 @@ class TransactionsController extends Controller
                         });
                 });
             })
-            ->latest();
+            ->leftJoin('beds as transaction_beds', 'transaction_beds.id', '=', 'transactions.bed_id')
+            ->leftJoin('rooms as transaction_rooms', 'transaction_rooms.id', '=', 'transaction_beds.room_id')
+            ->orderBy('transaction_rooms.ordered')
+            ->orderBy('transaction_beds.sort')
+            ->orderBy('transaction_beds.id')
+            ->select('transactions.*');
 
         if ($request->boolean('all')) {
             return $this->success(
