@@ -24,16 +24,16 @@ class TransactionsController extends Controller
         $locationId = $request->user()?->location_id;
 
         $query = Transaction::with(['bed.room', 'customer', 'location', 'checkedInBy'])
-            ->when($locationId, fn ($builder) => $builder->where('location_id', $locationId))
-            ->when($request->filled('location_id'), fn ($builder) => $builder->where('location_id', $request->integer('location_id')))
-            ->when($request->filled('customer_id'), fn ($builder) => $builder->where('customer_id', $request->integer('customer_id')))
-            ->when($request->filled('status'), fn ($builder) => $builder->where('status', $request->string('status')))
-            ->when($request->filled('checked_in_by'), fn ($builder) => $builder->where('checked_in_by', $request->integer('checked_in_by')))
+            ->when($locationId, fn ($builder) => $builder->where('transactions.location_id', $locationId))
+            ->when($request->filled('location_id'), fn ($builder) => $builder->where('transactions.location_id', $request->integer('location_id')))
+            ->when($request->filled('customer_id'), fn ($builder) => $builder->where('transactions.customer_id', $request->integer('customer_id')))
+            ->when($request->filled('status'), fn ($builder) => $builder->where('transactions.status', $request->string('status')))
+            ->when($request->filled('checked_in_by'), fn ($builder) => $builder->where('transactions.checked_in_by', $request->integer('checked_in_by')))
             ->when($request->filled('search'), function ($builder) use ($request) {
                 $search = $request->string('search');
 
                 $builder->where(function ($inner) use ($search) {
-                    $inner->where('unique_id', 'like', "%{$search}%")
+                    $inner->where('transactions.unique_id', 'like', "%{$search}%")
                         ->orWhereHas('customer', function ($customerQuery) use ($search) {
                             $customerQuery->where('first_name', 'like', "%{$search}%")
                                 ->orWhere('last_name', 'like', "%{$search}%")
