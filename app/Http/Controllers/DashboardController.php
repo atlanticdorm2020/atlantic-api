@@ -7,6 +7,7 @@ use App\Models\BedHistory;
 use App\Models\Location;
 use App\Models\Transaction;
 use App\Models\TransactionDetail;
+use App\Models\TransactionWalkin;
 use App\Models\TransactionWalkinDetail;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -46,7 +47,12 @@ class DashboardController extends Controller
 
         $allEarnings = $transactionEarnings + $walkInEarnings;
 
-        $totalOccupants = (clone $transactions)->where('status', 1)->count();
+        $seamanOccupants = (clone $transactions)->where('status', 1)->count();
+        $walkinOccupants = TransactionWalkin::query()
+            ->where('status', 1)
+            ->where('location_id', $locationId)
+            ->count();
+        $totalOccupants = $seamanOccupants + $walkinOccupants;
         $availableBeds = (clone $beds)->where('status', 1)->count();
         $location = $locationId ? Location::find($locationId) : null;
 
