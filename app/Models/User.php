@@ -85,4 +85,14 @@ class User extends Authenticatable
     {
         return $this->hasOne(Customer::class);
     }
+
+    public function duties(): HasMany
+    {
+        return $this->hasMany(ReceptionistDuty::class, 'user_id');
+    }
+
+    public function checkedInTransactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class, 'checked_in_by');
+    }
 }

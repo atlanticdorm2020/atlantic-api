@@ -23,11 +23,12 @@ class TransactionsController extends Controller
     {
         $locationId = $request->user()?->location_id;
 
-        $query = Transaction::with(['bed.room', 'customer', 'location'])
+        $query = Transaction::with(['bed.room', 'customer', 'location', 'checkedInBy'])
             ->when($locationId, fn ($builder) => $builder->where('location_id', $locationId))
             ->when($request->filled('location_id'), fn ($builder) => $builder->where('location_id', $request->integer('location_id')))
             ->when($request->filled('customer_id'), fn ($builder) => $builder->where('customer_id', $request->integer('customer_id')))
             ->when($request->filled('status'), fn ($builder) => $builder->where('status', $request->string('status')))
+            ->when($request->filled('checked_in_by'), fn ($builder) => $builder->where('checked_in_by', $request->integer('checked_in_by')))
             ->when($request->filled('search'), function ($builder) use ($request) {
                 $search = $request->string('search');
 
@@ -267,7 +268,7 @@ class TransactionsController extends Controller
         $data['login'] = $data['login'] ?? now('Asia/Manila');
 
         try {
-            $result = $storeService->create($data, $locationId);
+            $result = $storeService->create($data, $locationId, $request->user()?->id);
         } catch (\InvalidArgumentException $exception) {
             return $this->error($exception->getMessage(), 422);
         }
@@ -277,7 +278,7 @@ class TransactionsController extends Controller
             : 'Transaction created.';
 
         return $this->success(
-            $this->formatTransaction($result['transaction']->load(['bed.room', 'customer', 'location'])),
+            $this->formatTransaction($result['transaction']->load(['bed.room', 'customer', 'location', 'checkedInBy'])),
             $message,
             201
         );
@@ -289,6 +290,7 @@ class TransactionsController extends Controller
             'bed.room.location',
             'customer',
             'location',
+            'checkedInBy',
             'details',
             'histories',
             'penalties',
@@ -306,10 +308,12 @@ class TransactionsController extends Controller
             $data['final_amount'] = $this->calculateFinalAmount($merged);
         }
 
+        unset($data['checked_in_by']);
+
         $transaction->update($data);
 
         return $this->success(
-            $this->formatTransaction($transaction->fresh()->load(['bed.room', 'customer', 'location'])),
+            $this->formatTransaction($transaction->fresh()->load(['bed.room', 'customer', 'location', 'checkedInBy'])),
             'Transaction updated.'
         );
     }
@@ -333,7 +337,7 @@ class TransactionsController extends Controller
             : 'Guest checked out successfully.';
 
         return $this->success(
-            $this->formatTransaction($result['transaction']->load(['bed.room', 'customer', 'location'])),
+            $this->formatTransaction($result['transaction']->load(['bed.room', 'customer', 'location', 'checkedInBy'])),
             $message
         );
     }
@@ -385,7 +389,7 @@ class TransactionsController extends Controller
         });
 
         return $this->success(
-            $this->formatTransaction($transaction->fresh()->load(['bed.room', 'customer', 'location', 'details'])),
+            $this->formatTransaction($transaction->fresh()->load(['bed.room', 'customer', 'location', 'checkedInBy', 'details'])),
             'Stay extended successfully.'
         );
     }
@@ -430,7 +434,7 @@ class TransactionsController extends Controller
             : 'Guest switched successfully.';
 
         return $this->success(
-            $this->formatTransaction($result['transaction']->load(['bed.room', 'customer', 'location'])),
+            $this->formatTransaction($result['transaction']->load(['bed.room', 'customer', 'location', 'checkedInBy'])),
             $message
         );
     }
@@ -502,16 +506,20 @@ class TransactionsController extends Controller
             'is_continue_label' => ((int) ($transaction->isContinue ?? 0)) === 1 ? 'Yes' : 'No',
             'penalty' => $transaction->penalty,
             'final_amount' => $transaction->final_amount,
-            'login' => $transaction->login,
-            'logout' => $transaction->logout,
+            'login' => $login?->toIso8601String(),
+            'logout' => $logout?->toIso8601String(),
             'expected_out' => $expectedOut?->toIso8601String(),
             'is_overdue' => $isOverdue,
-            'created_at' => $transaction->created_at,
-            'updated_at' => $transaction->updated_at,
+            'created_at' => $transaction->created_at?->timezone($timezone)->toIso8601String(),
+            'updated_at' => $transaction->updated_at?->timezone($timezone)->toIso8601String(),
             'customer_name' => $customerName,
             'room_name' => $transaction->bed?->room?->name,
             'bed_name' => $transaction->bed?->name,
             'location_name' => $transaction->location?->name,
+            'branch_color' => $transaction->location?->color_hex,
+            'branch_color_text' => $transaction->location?->color_text,
+            'checked_in_by' => $transaction->checked_in_by,
+            'receptionist_name' => $transaction->checkedInBy?->name,
             'customer' => $customer,
             'bed' => $transaction->bed,
             'location' => $transaction->location,

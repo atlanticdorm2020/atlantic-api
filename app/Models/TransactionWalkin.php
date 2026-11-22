@@ -66,6 +66,11 @@ class TransactionWalkin extends Model
         return $this->belongsTo(Location::class);
     }
 
+    public function receptionist(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
     public function details(): HasMany
     {
         return $this->hasMany(TransactionWalkinDetail::class, 'transaction_id');

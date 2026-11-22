@@ -36,7 +36,12 @@ class LocationsController extends Controller
             'address' => ['required', 'string', 'max:191'],
             'status' => ['nullable', 'integer'],
             'rate_id' => ['nullable', 'integer', 'exists:rates,id'],
+            'color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
         ]);
+
+        if (! empty($data['color'])) {
+            $data['color'] = strtoupper($data['color']);
+        }
 
         $location = Location::create($this->withActor($data, $request));
 
@@ -55,7 +60,12 @@ class LocationsController extends Controller
             'address' => ['sometimes', 'required', 'string', 'max:191'],
             'status' => ['nullable', 'integer'],
             'rate_id' => ['nullable', 'integer', 'exists:rates,id'],
+            'color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
         ]);
+
+        if (! empty($data['color'])) {
+            $data['color'] = strtoupper($data['color']);
+        }
 
         $location->update($this->withActor($data, $request));
 

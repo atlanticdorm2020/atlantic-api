@@ -13,6 +13,7 @@ class Transaction extends Model
         'bed_id',
         'customer_id',
         'location_id',
+        'checked_in_by',
         'no_day',
         'extend_day',
         'remaining_day',
@@ -34,6 +35,7 @@ class Transaction extends Model
             'bed_id' => 'integer',
             'customer_id' => 'integer',
             'location_id' => 'integer',
+            'checked_in_by' => 'integer',
             'no_day' => 'integer',
             'extend_day' => 'integer',
             'remaining_day' => 'integer',
@@ -62,6 +64,11 @@ class Transaction extends Model
     public function location(): BelongsTo
     {
         return $this->belongsTo(Location::class);
+    }
+
+    public function checkedInBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'checked_in_by');
     }
 
     public function details(): HasMany

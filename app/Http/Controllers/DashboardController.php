@@ -83,6 +83,8 @@ class DashboardController extends Controller
             ->with([
                 'transaction.customer',
                 'transaction.bed.room',
+                'transaction.checkedInBy',
+                'transaction.location',
             ])
             ->when($locationId, fn ($builder) => $builder->where('location_id', $locationId))
             ->whereBetween('created_at', [$start, $end])
@@ -138,7 +140,11 @@ class DashboardController extends Controller
             'amount' => (float) ($detail->amount ?? 0),
             'room_name' => $bed?->room?->name,
             'bed_name' => $bed?->name,
-            'created_at' => $detail->created_at,
+            'created_at' => $detail->created_at?->timezone('Asia/Manila')->toIso8601String(),
+            'receptionist_name' => $transaction?->checkedInBy?->name,
+            'location_name' => $transaction?->location?->name,
+            'branch_color' => $transaction?->location?->color_hex,
+            'branch_color_text' => $transaction?->location?->color_text,
         ];
     }
 
@@ -193,7 +199,7 @@ class DashboardController extends Controller
         }
 
         $query = TransactionWalkinDetail::query()
-            ->with(['transaction.customer'])
+            ->with(['transaction.customer', 'transaction.receptionist', 'transaction.location'])
             ->when($locationId, fn ($builder) => $builder->where('location_id', $locationId))
             ->whereBetween('created_at', [$start, $end])
             ->when($filters['search'] ?? null, function ($builder) use ($filters) {
@@ -225,7 +231,11 @@ class DashboardController extends Controller
             'status_label' => $this->walkinDetailStatusLabel($status),
             'hours' => (int) ($detail->hours ?? 0),
             'amount' => (float) ($detail->amount ?? 0),
-            'created_at' => $detail->created_at,
+            'created_at' => $detail->created_at?->timezone('Asia/Manila')->toIso8601String(),
+            'receptionist_name' => $detail->transaction?->receptionist?->name,
+            'location_name' => $detail->transaction?->location?->name,
+            'branch_color' => $detail->transaction?->location?->color_hex,
+            'branch_color_text' => $detail->transaction?->location?->color_text,
         ];
     }
 

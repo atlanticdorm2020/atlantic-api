@@ -152,7 +152,7 @@ class TransactionWalkinController extends Controller
         $locationId = $request->user()?->location_id;
 
         $query = TransactionWalkin::query()
-            ->with(['customer', 'room', 'bed'])
+            ->with(['customer', 'room', 'bed', 'location', 'receptionist'])
             ->when($locationId, fn ($builder) => $builder->where('location_id', $locationId))
             ->where('status', 1)
             ->when($request->filled('search'), function ($builder) use ($request) {
@@ -201,7 +201,7 @@ class TransactionWalkinController extends Controller
         }
 
         return $this->success(
-            $this->formatWalkinTransaction($transaction),
+            $this->formatWalkinTransaction($transaction->load(['customer', 'room', 'bed', 'location', 'receptionist'])),
             'Walk-in transaction created.',
             201
         );
@@ -286,16 +286,22 @@ class TransactionWalkinController extends Controller
             'hours' => $totalHours > 0 ? $totalHours : (int) ($transaction->hours ?? 0),
             'rates' => (float) ($transaction->rates ?? 0),
             'login' => $transaction->login
-                ? Carbon::parse($transaction->login)->timezone($timezone)->toDateTimeString()
+                ? Carbon::parse($transaction->login)->timezone($timezone)->toIso8601String()
                 : null,
             'expected_out' => $transaction->time_out
-                ? Carbon::parse($transaction->time_out)->timezone($timezone)->toDateTimeString()
+                ? Carbon::parse($transaction->time_out)->timezone($timezone)->toIso8601String()
                 : null,
             'logout' => $transaction->logout
-                ? Carbon::parse($transaction->logout)->timezone($timezone)->toDateTimeString()
+                ? Carbon::parse($transaction->logout)->timezone($timezone)->toIso8601String()
                 : null,
             'status' => (int) $transaction->status,
             'status_label' => (int) $transaction->status === 1 ? 'Login' : 'Logout',
+            'location_id' => $transaction->location_id,
+            'location_name' => $transaction->location?->name,
+            'branch_color' => $transaction->location?->color_hex,
+            'branch_color_text' => $transaction->location?->color_text,
+            'receptionist_id' => $transaction->user_id,
+            'receptionist_name' => $transaction->receptionist?->name,
         ];
     }
 }

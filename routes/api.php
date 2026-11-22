@@ -7,7 +7,9 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LocationsController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\PublicBranchController;
+use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\RatesController;
+use App\Http\Controllers\ReceptionistDutyController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\RoomsController;
@@ -27,6 +29,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
     Route::get('/dashboard/transaction-details', [DashboardController::class, 'transactionDetails']);
     Route::get('/dashboard/walkin-transaction-details', [DashboardController::class, 'walkinTransactionDetails']);
+    Route::get('/monitoring', [MonitoringController::class, 'dashboard']);
+    Route::get('/monitoring/staff', [MonitoringController::class, 'staff']);
+    Route::get('/monitoring/branches', [MonitoringController::class, 'branches']);
+    Route::get('/duties', [ReceptionistDutyController::class, 'index']);
+    Route::post('/duties', [ReceptionistDutyController::class, 'store']);
+    Route::put('/duties/{receptionistDuty}', [ReceptionistDutyController::class, 'update']);
+    Route::delete('/duties/{receptionistDuty}', [ReceptionistDutyController::class, 'destroy']);
+    Route::get('/duties/{receptionistDuty}/history', [ReceptionistDutyController::class, 'history']);
 
     Route::apiResource('locations', LocationsController::class);
     Route::apiResource('rates', RatesController::class);

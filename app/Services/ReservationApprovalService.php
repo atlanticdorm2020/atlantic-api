@@ -33,7 +33,7 @@ class ReservationApprovalService
 
             $transaction = $reservation->type === Reservation::TYPE_WALKIN
                 ? $this->approveWalkin($reservation, $adminUserId, $bedId)
-                : $this->approveBedspace($reservation, $bedId);
+                : $this->approveBedspace($reservation, $adminUserId, $bedId);
 
             $reservation->update(['status' => Reservation::STATUS_APPROVED]);
 
@@ -55,7 +55,7 @@ class ReservationApprovalService
         return $reservation->fresh(['location', 'room', 'customRate.rate', 'customer.user']);
     }
 
-    private function approveBedspace(Reservation $reservation, ?int $bedId): Transaction
+    private function approveBedspace(Reservation $reservation, int $adminUserId, ?int $bedId): Transaction
     {
         if (! $reservation->room_id) {
             throw new \InvalidArgumentException('Bedspace reservation is missing a preferred room.');
@@ -87,7 +87,7 @@ class ReservationApprovalService
             'no_day' => (int) ($reservation->no_day ?? 1),
             'login' => $this->availability->reservationWindow($reservation)[0],
             'rates' => (float) ($room->rate?->amount ?? 0),
-        ], $locationId);
+        ], $locationId, $adminUserId);
 
         return $result['transaction'];
     }

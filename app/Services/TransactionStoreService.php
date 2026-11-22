@@ -22,7 +22,7 @@ class TransactionStoreService
      * @param  array<string, mixed>  $data
      * @return array{transaction: Transaction, upgrade_penalty: float}
      */
-    public function create(array $data, int $locationId): array
+    public function create(array $data, int $locationId, ?int $checkedInBy = null): array
     {
         $bed = Bed::with('room.rate')->findOrFail($data['bed_id']);
         $customer = Customer::findOrFail($data['customer_id']);
@@ -47,7 +47,7 @@ class TransactionStoreService
             throw new \InvalidArgumentException('Transaction day must be greater than or equal to 5.');
         }
 
-        return DB::transaction(function () use ($data, $locationId, $bed, $customer, $pricing, $prepaidBalance) {
+        return DB::transaction(function () use ($data, $locationId, $bed, $customer, $pricing, $prepaidBalance, $checkedInBy) {
             $bed = Bed::query()->whereKey($bed->id)->lockForUpdate()->firstOrFail();
 
             if ($this->bedHasActiveStay((int) $bed->id, $locationId)) {
@@ -60,6 +60,7 @@ class TransactionStoreService
                 'unique_id' => $data['unique_id'] ?? $this->generateUniqueId($locationId),
                 'customer_id' => $customer->id,
                 'location_id' => $locationId,
+                'checked_in_by' => $checkedInBy,
                 'no_day' => $pricing['no_day'],
                 'rates' => $pricing['rate'],
                 'amount' => $pricing['amount'],

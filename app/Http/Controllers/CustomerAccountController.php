@@ -78,8 +78,8 @@ class CustomerAccountController extends Controller
             'amount' => (float) ($transaction->final_amount ?? $transaction->amount ?? 0),
             'days' => (int) ($transaction->no_day ?? 0) + (int) ($transaction->extend_day ?? 0),
             'status' => $transaction->status === '1' ? 'Active' : 'Checked out',
-            'check_in' => $transaction->login?->toIso8601String(),
-            'check_out' => $transaction->logout?->toIso8601String(),
+            'check_in' => $transaction->login?->timezone('Asia/Manila')->toIso8601String(),
+            'check_out' => $transaction->logout?->timezone('Asia/Manila')->toIso8601String(),
         ]);
 
         return $this->paginatedResponse($transactions);

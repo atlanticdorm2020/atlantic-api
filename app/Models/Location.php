@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\BranchColor;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -13,9 +14,15 @@ class Location extends Model
     protected $fillable = [
         'name',
         'address',
+        'color',
         'status',
         'rate_id',
         'user_id',
+    ];
+
+    protected $appends = [
+        'color_hex',
+        'color_text',
     ];
 
     protected function casts(): array
@@ -25,6 +32,16 @@ class Location extends Model
             'rate_id' => 'integer',
             'user_id' => 'integer',
         ];
+    }
+
+    public function getColorHexAttribute(): string
+    {
+        return BranchColor::resolve($this->attributes['color'] ?? null, $this->name, $this->id);
+    }
+
+    public function getColorTextAttribute(): string
+    {
+        return BranchColor::contrast($this->color_hex);
     }
 
     public function rate(): BelongsTo
@@ -75,5 +92,10 @@ class Location extends Model
     public function transactionWalkinDetails(): HasMany
     {
         return $this->hasMany(TransactionWalkinDetail::class);
+    }
+
+    public function duties(): HasMany
+    {
+        return $this->hasMany(ReceptionistDuty::class);
     }
 }
