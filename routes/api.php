@@ -13,11 +13,13 @@ use App\Http\Controllers\ReceptionistDutyController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\RoomsController;
+use App\Http\Controllers\SeamanLoanController;
 use App\Http\Controllers\TransactionWalkinController;
 use App\Http\Controllers\TransactionsController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/public/branches/{slug}/rates', [PublicBranchController::class, 'rates']);
+Route::post('/public/seaman-loan', [SeamanLoanController::class, 'store']);
 
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/register', [RegisterController::class, 'register']);
@@ -37,6 +39,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/duties/{receptionistDuty}', [ReceptionistDutyController::class, 'update']);
     Route::delete('/duties/{receptionistDuty}', [ReceptionistDutyController::class, 'destroy']);
     Route::get('/duties/{receptionistDuty}/history', [ReceptionistDutyController::class, 'history']);
+    Route::get('/seaman-loan', [SeamanLoanController::class, 'index']);
+    Route::put('/seaman-loan/{seamanLoanApplication}', [SeamanLoanController::class, 'update']);
+    Route::post('/seaman-loan/{seamanLoanApplication}/payments', [SeamanLoanController::class, 'storePayment']);
+    Route::put('/seaman-loan/{seamanLoanApplication}/payments/{seamanLoanPayment}', [SeamanLoanController::class, 'updatePayment']);
+    Route::delete('/seaman-loan/{seamanLoanApplication}/payments/{seamanLoanPayment}', [SeamanLoanController::class, 'destroyPayment']);
 
     Route::apiResource('locations', LocationsController::class);
     Route::apiResource('rates', RatesController::class);
