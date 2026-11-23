@@ -20,8 +20,9 @@ class DashboardController extends Controller
         $user = $request->user();
         $locationId = $user?->location_id;
         $timezone = 'Asia/Manila';
-        $startOfDay = Carbon::now($timezone)->startOfDay();
-        $endOfDay = Carbon::now($timezone)->endOfDay();
+        $today = Carbon::now($timezone)->toDateString();
+        $from = $today . ' 00:00:00';
+        $to = $today . ' 23:59:59';
 
         $transactions = Transaction::query()
             ->where('location_id', $locationId);
@@ -31,18 +32,15 @@ class DashboardController extends Controller
             fn ($roomQuery) => $roomQuery->where('location_id', $locationId)
         );
 
-        // Earnings are recorded on detail rows (login, extend, switch, penalty).
-        // Summing transactions.created_at misses same-day extends on older stays.
+        // Match legacy: sum every detail amount created today, including logout rows.
         $transactionEarnings = (float) TransactionDetail::query()
-            ->when($locationId, fn ($builder) => $builder->where('location_id', $locationId))
-            ->whereBetween('created_at', [$startOfDay, $endOfDay])
-            ->whereIn('status', [1, 3, 4, 5])
+            ->where('location_id', $locationId)
+            ->whereBetween('created_at', [$from, $to])
             ->sum('amount');
 
         $walkInEarnings = (float) TransactionWalkinDetail::query()
-            ->when($locationId, fn ($builder) => $builder->where('location_id', $locationId))
-            ->whereBetween('created_at', [$startOfDay, $endOfDay])
-            ->whereIn('status', [1, 3])
+            ->where('location_id', $locationId)
+            ->whereBetween('created_at', [$from, $to])
             ->sum('amount');
 
         $allEarnings = $transactionEarnings + $walkInEarnings;
@@ -62,7 +60,7 @@ class DashboardController extends Controller
             'all_earnings' => round($allEarnings, 2),
             'total_occupants' => $totalOccupants,
             'available_beds' => $availableBeds,
-            'earnings_date' => $startOfDay->toDateString(),
+            'earnings_date' => $today,
         ]);
     }
 
